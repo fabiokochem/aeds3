@@ -1,0 +1,33 @@
+#Eclipse
+.classpath
+.project
+.settings/
+
+# IntelliJ
+.idea
+*.iml
+*.ipr
+*.iws
+
+# NetBeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Maven
+target/
+log/
+
+#Java
+*.class
+
+
