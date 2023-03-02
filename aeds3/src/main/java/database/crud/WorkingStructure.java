@@ -138,7 +138,7 @@ public class WorkingStructure {
 
     // metodos privados ======================================================
     
-    private boolean notEOF() throws IOException{
+    public boolean notEOF() throws IOException{
         return this.file.getFilePointer() < this.file.length();
     }
 
@@ -149,7 +149,7 @@ public class WorkingStructure {
         this.file.write(arr);
     }
 
-    private MovieObj read() throws IOException {
+    public MovieObj read() throws IOException {
         MovieObj obj = null;
 
         if(notEOF()){
