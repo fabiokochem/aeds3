@@ -1,13 +1,11 @@
-package crud;
+package database.crud;
 
-import java.io.File;
+import com.opencsv.CSVReader;
+import comp.MovieObj;
+
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-
-import com.opencsv.CSVReader;
-
-import comp.MovieObj;
 
 public class WorkingStructure {
 
@@ -24,10 +22,6 @@ public class WorkingStructure {
         this.file = new RandomAccessFile(this.basePath, "rw");
         this.initializing();
         this.file.close();
-    }
-
-    public WorkingStructure() throws IOException {
-        this(null);
     }
 
     // metodos publicos ======================================================
@@ -69,7 +63,7 @@ public class WorkingStructure {
             }
         }
 
-        if(obj.getId() != key) obj = null;
+        if(obj == null || obj.getId() != key) obj = null;
         else updateCab(obj.getId());
 
         this.file.close();
@@ -83,7 +77,7 @@ public class WorkingStructure {
 
         this.file = new RandomAccessFile(this.basePath, "rw");
 
-        boolean res = false;
+        boolean res;
         MovieObj obj = null;
         long pos = 0;
         
@@ -100,7 +94,7 @@ public class WorkingStructure {
             }
         }
 
-        res = obj.getId() == key;
+        res = obj != null && obj.getId() == key;
         if(res) {
             this.file.seek(pos);
             this.file.writeBoolean(false);
@@ -111,10 +105,11 @@ public class WorkingStructure {
         return res;
     }
 
+    //Drop all registers
     public void reset() throws IOException{
-        this.file = new RandomAccessFile(new File(this.basePath), "rw");
+        this.file = new RandomAccessFile(this.basePath, "rw");
         this.file.setLength(0);
-        id = 0;
+        this.initializing();
         this.file.close();
     }
 

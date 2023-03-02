@@ -7,15 +7,12 @@ import java.util.List;
 
 import com.opencsv.CSVReader;
 
-public class CsvStuff {
+public class CsvParser {
 
     public String CSV_FILE_PATH; //"src/main/java/tmp/Movies.csv";
 
-    public CsvStuff(){
-        this(null);
-    }
 
-    public CsvStuff(String path){
+    public CsvParser(String path){
         this.CSV_FILE_PATH = path;
     }
 
@@ -23,15 +20,15 @@ public class CsvStuff {
         return CSV_FILE_PATH;
     }
 
-    public void setCSV_FILE_PATH(String cSV_FILE_PATH) {
-        CSV_FILE_PATH = cSV_FILE_PATH;
+    public void setCSV_FILE_PATH(String CSV_FILE_PATH) {
+        this.CSV_FILE_PATH = CSV_FILE_PATH;
     }
-    
+
     public List<List<String>> CsvReader(String file){
         try {
 
             CSVReader csvReader = new CSVReader(new FileReader(file));
-            List<List<String>> linhas = new ArrayList<List<String>>();
+            List<List<String>> linhas = new ArrayList<>();
             String[] columns;
       
             while((columns = csvReader.readNext()) != null){
@@ -47,5 +44,4 @@ public class CsvStuff {
 
         return null;
     }
-
 }

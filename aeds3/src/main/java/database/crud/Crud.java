@@ -1,4 +1,4 @@
-package crud;
+package database.crud;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -21,6 +21,8 @@ public class Crud {
 
         while(res != 6){
             System.out.println("Bem-Vindo ao Menu! \n (1) Criar filme \n (2) Ler um filme \n (3) Atualizar um filme \n (4) Deletar um filme \n (5) Histórico de movimentações \n (6) Sair");
+            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+            res = Integer.parseInt(br.readLine());
 
             if(res == 1){
                 createDesc(archive);
@@ -32,8 +34,7 @@ public class Crud {
                 deleteDesc(archive);
             } else if(res == 5){
                 lastIdDesc(archive);
-            } else if(res == 6) continue;
-            else {
+            } else if(res != 6) {
                 System.out.println("Opção inválida");
             }
         }

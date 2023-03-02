@@ -9,7 +9,7 @@ import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class MovieObj implements Serializable {
+public class MovieObj implements Serializable, Cloneable {
 
     public int id = -1;
     public String title;
@@ -21,7 +21,7 @@ public class MovieObj implements Serializable {
     public String directors;
 
     public MovieObj(){
-        this("", new Date(), (short)-1, (float)-1, -1, "", "");
+        this("", new Date(), (short)-1, -1f, -1, "", "");
     }
 
     public MovieObj(String title, Date releaseDate, short year, float imdbRating, int runtime, String genres, String directors){
@@ -132,7 +132,7 @@ public class MovieObj implements Serializable {
         obj.setId(Integer.parseInt(arr[0]));
         obj.setTitle(arr[1]);
         obj.setReleaseDate(new SimpleDateFormat("dd/MM/yyyy").parse(arr[2]));
-        obj.setYear(Short.valueOf(arr[3]));
+        obj.setYear(Short.parseShort(arr[3]));
         obj.setImdbRating(Float.parseFloat(arr[4]));
         obj.setRuntime(Integer.parseInt(arr[5]));
         obj.setGenres(arr[6]);
@@ -143,18 +143,26 @@ public class MovieObj implements Serializable {
 
     @Override
     public String toString() {
-        String s = "";
-        s += "ID: " + this.getId() + "; \n";
-        s += "Título: " + this.getTitle() + "; \n";
-        s += "Data de lançamento: " + this.getReleaseDate().toString() + "; \n";
-        s += "Ano de lançamento: " + this.getYear() + "; \n";
-        s += "Rating da IMDB: " + this.getImdbRating() + "; \n";
-        s += "Minutagem: " + this.getRuntime() + "; \n";
-        s += "Gêneros: " + this.getGenres() + "; \n";
-        s += "Diretores: " + this.getDirectors();
-
-        return s;
+        return "MovieObj{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", releaseDate=" + releaseDate +
+                ", year=" + year +
+                ", imdbRating=" + imdbRating +
+                ", runtime=" + runtime +
+                ", genres='" + genres + '\'' +
+                ", directors='" + directors + '\'' +
+                '}';
     }
 
-
+    @Override
+    public MovieObj clone() {
+        try {
+            MovieObj clone = (MovieObj) super.clone();
+            clone.releaseDate = (Date) releaseDate.clone();
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
+    }
 }
