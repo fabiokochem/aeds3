@@ -120,24 +120,8 @@ public class WorkingStructure {
         return res;
     }
 
-    public void start(String CSVpath) throws Exception{
-        CSVReader csv = new CSVReader(new FileReader(CSVpath));
-        this.reset();
-
-        String[] columns = csv.readNext();
-        MovieObj obj = new MovieObj();
-    
-        while(columns !=  null){
-            obj = obj.createFrom(columns);
-            this.createCRUD(obj);
-            columns = csv.readNext();
-        }
-
-        csv.close();
-    }
-
     // metodos privados ======================================================
-    
+
     public boolean notEOF() throws IOException{
         return this.file.getFilePointer() < this.file.length();
     }

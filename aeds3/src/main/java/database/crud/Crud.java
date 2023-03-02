@@ -1,42 +1,56 @@
 package database.crud;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.ParseException;
 
+import com.opencsv.exceptions.CsvValidationException;
 import comp.MovieObj;
+import csv.CSVMovieParser;
 
 public class Crud {
 
-    private static int crud_id = 865;
-
-    public Crud(){
-        
-    }
+    private static int last_id;
+    private WorkingStructure archive;
 
     public void Menu() throws Exception{
-        WorkingStructure archive = new WorkingStructure("src/main/java/tmp/database.db");
-        archive.start("src/main/java/tmp/Movies.csv");
+        archive = new WorkingStructure("src/main/java/tmp/database.db");
         
         int res = -1;
 
         while(res != 6){
-            System.out.println("Bem-Vindo ao Menu! \n (1) Criar filme \n (2) Ler um filme \n (3) Atualizar um filme \n (4) Deletar um filme \n (5) Histórico de movimentações \n (6) Sair");
+            System.out.println("Bem-Vindo ao Menu! \n (1) Criar filme \n (2) Ler um filme \n (3) Atualizar um filme \n (4) Deletar um filme \n (5) Histórico de movimentações \n (6) Resetar banco de dados \n (7) Sair");
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             res = Integer.parseInt(br.readLine());
 
-            if(res == 1){
-                createDesc(archive);
-            } else if(res == 2){
-                readDesc(archive);
-            } else if(res == 3){
-                updateDescCRUD(archive);
-            } else if(res == 4){
-                deleteDesc(archive);
-            } else if(res == 5){
-                lastIdDesc(archive);
-            } else if(res != 6) {
-                System.out.println("Opção inválida");
+            try {
+                if(res == 1)
+                    createDesc(archive);
+                else if(res == 2)
+                    readDesc(archive);
+                else if(res == 3)
+                    updateDescCRUD(archive);
+                else if(res == 4)
+                    deleteDesc(archive);
+                else if(res == 5)
+                    lastIdDesc(archive);
+                else if (res == 6)
+                    this.reset();
+                else if(res != 7) {
+                    System.out.println("Opção inválida");
+                }
+            } catch (Exception e) {
+                System.out.println("Erro no banco de dados: " + e.getMessage());
             }
+        }
+    }
+
+    private void reset() throws CsvValidationException, IOException, ParseException {
+        last_id = 0;
+        archive.reset();
+        for (MovieObj movie : CSVMovieParser.parseCSV("src/main/java/tmp/Movies.csv")) {
+            archive.createCRUD(movie);
         }
     }
 
@@ -45,7 +59,7 @@ public class Crud {
 
         String[] arr = new String[8];
 
-        arr[0] = Integer.toString(++crud_id);
+        arr[0] = Integer.toString(++last_id);
         System.out.println("Digite o título do filme: ");
         arr[1] = br.readLine();
         System.out.println("Digite a data de lançamento: ");
@@ -62,7 +76,7 @@ public class Crud {
         arr[7] = br.readLine();
 
         MovieObj obj = new MovieObj();
-        obj = obj.createFrom(arr);
+        obj = CSVMovieParser.parseLine(arr);
         archive.createCRUD(obj);
 
         System.out.println("-------------------------");
@@ -114,8 +128,8 @@ public class Crud {
             System.out.println("Digite os nomes dos novos diretores, separados por vírgula: ");
             arr[7] = br.readLine();
 
-            MovieObj obj = new MovieObj();
-            obj = obj.createFrom(arr);
+            MovieObj obj;
+            obj = CSVMovieParser.parseLine(arr);
             archive.createCRUD(obj);
 
             System.out.println("-------------------------------");                    

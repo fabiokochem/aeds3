@@ -125,20 +125,6 @@ public class MovieObj implements Serializable, Cloneable {
         data_output.writeUTF(this.getGenres());
         data_output.writeUTF(this.getDirectors());
         return ba_output.toByteArray();
-    }   
-
-    public MovieObj createFrom(String[] arr) throws Exception {
-        MovieObj obj = new MovieObj();
-        obj.setId(Integer.parseInt(arr[0]));
-        obj.setTitle(arr[1]);
-        obj.setReleaseDate(new SimpleDateFormat("dd/MM/yyyy").parse(arr[2]));
-        obj.setYear(Short.parseShort(arr[3]));
-        obj.setImdbRating(Float.parseFloat(arr[4]));
-        obj.setRuntime(Integer.parseInt(arr[5]));
-        obj.setGenres(arr[6]);
-        obj.setDirectors(arr[7]);
-
-        return obj;
     }
 
     @Override
