@@ -24,7 +24,7 @@ nbdist/
 .DS_Store
 
 # Maven
-target/
+aeds3/target/
 log/
 
 #Java
