@@ -1,18 +1,16 @@
 package csv;
 
+import com.opencsv.CSVReader;
+import com.opencsv.exceptions.CsvValidationException;
+import comp.MovieObj;
+
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
-
-import com.opencsv.CSVReader;
-import com.opencsv.exceptions.CsvValidationException;
-import comp.MovieObj;
 
 public class CSVMovieParser {
 

@@ -1,9 +1,7 @@
 package database.crud;
 
-import com.opencsv.CSVReader;
 import comp.MovieObj;
 
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 

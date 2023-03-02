@@ -1,13 +1,13 @@
 package database.crud;
 
+import com.opencsv.exceptions.CsvValidationException;
+import comp.MovieObj;
+import csv.CSVMovieParser;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.ParseException;
-
-import com.opencsv.exceptions.CsvValidationException;
-import comp.MovieObj;
-import csv.CSVMovieParser;
 
 public class Crud {
 
@@ -75,7 +75,7 @@ public class Crud {
         System.out.println("Digite o nome dos diretores, separados por vírgula: ");
         arr[7] = br.readLine();
 
-        MovieObj obj = new MovieObj();
+        MovieObj obj;
         obj = CSVMovieParser.parseLine(arr);
         archive.createCRUD(obj);
 

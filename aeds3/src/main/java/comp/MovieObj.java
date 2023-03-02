@@ -1,12 +1,6 @@
 package comp;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.Serializable;
-import java.text.SimpleDateFormat;
+import java.io.*;
 import java.util.Date;
 
 public class MovieObj implements Serializable, Cloneable {
