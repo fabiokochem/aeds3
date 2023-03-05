@@ -5,7 +5,7 @@ import java.util.Date;
 
 public class MovieObj implements Serializable, Cloneable {
 
-    public int id = -1;
+    public int id;
     public String title;
     public Date releaseDate;
     public float imdbRating;
@@ -14,10 +14,11 @@ public class MovieObj implements Serializable, Cloneable {
     public String directors;
 
     public MovieObj(){
-        this("", new Date(), -1f, -1, "", "");
+        this(-1, "", new Date(), -1f, -1, "", "");
     }
 
-    public MovieObj(String title, Date releaseDate, float imdbRating, int runtime, String genres, String directors){
+    public MovieObj(int id, String title, Date releaseDate, float imdbRating, int runtime, String genres, String directors){
+        this.id = id;
         this.title = title;
         this.releaseDate = releaseDate;
         this.imdbRating = imdbRating;
@@ -82,17 +83,22 @@ public class MovieObj implements Serializable, Cloneable {
         this.directors = directors;
     }
 
-    public void fromByteArray(byte[] arr) throws IOException {
+    public static MovieObj fromByteArray(byte[] arr) throws IOException {
+        MovieObj obj = new MovieObj();
         ByteArrayInputStream arr_input = new ByteArrayInputStream(arr);
         DataInputStream data_input = new DataInputStream(arr_input);
-  
-        this.setId(data_input.readInt());
-        this.setTitle(data_input.readUTF());
-        this.setReleaseDate(new Date(data_input.readLong()));
-        this.setImdbRating(data_input.readFloat());
-        this.setRuntime(data_input.readInt());
-        this.setGenres(data_input.readUTF());
-        this.setDirectors(data_input.readUTF());
+
+        //TODO: the array is not being read correctly
+
+        obj.setId(data_input.readInt());
+        obj.setTitle(data_input.readUTF());
+        obj.setReleaseDate(new Date(data_input.readLong()));
+        obj.setImdbRating(data_input.readFloat());
+        obj.setRuntime(data_input.readInt());
+        obj.setGenres(data_input.readUTF());
+        obj.setDirectors(data_input.readUTF());
+
+        return obj;
     }
 
     public byte[] toByteArray() throws IOException {

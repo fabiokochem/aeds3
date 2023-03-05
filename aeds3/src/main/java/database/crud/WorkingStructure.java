@@ -2,16 +2,15 @@ package database.crud;
 
 import comp.MovieObj;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Iterator;
 
-public class WorkingStructure implements Closeable {
+public class WorkingStructure implements AutoCloseable {
 
     // variaveis ====================================================
 
-    private int last_id = 0;
+    private int last_id = -1;
     public String basePath; 
     public RandomAccessFile file;
 
@@ -19,26 +18,26 @@ public class WorkingStructure implements Closeable {
 
     public WorkingStructure(String path) throws IOException { //"src/main/java/tmp/database.db"
         this.basePath = path;
-        this.file = new RandomAccessFile(this.basePath, "rw");
         this.initializing();
     }
 
     // metodos publicos ======================================================
 
-    public void createCRUD(MovieObj obj) throws IOException {
-        this.file = new RandomAccessFile(this.basePath, "rw");
+    public int createCRUD(MovieObj obj) throws IOException {
         this.initializing();
 
-        if(last_id >= obj.getId()) {
-            throw new IllegalArgumentException("[ERROR] The ID is not valid!");
+        if (obj.getId() < 0) {
+            obj.setId(++this.last_id);
+        } else if(last_id >= obj.getId()) {
+            throw new IllegalArgumentException("[ERROR] The ID (" + obj.getId() + ") is already in use! Last ID: " + last_id);
         }
 
-        this.file.seek(this.file.length());
-        this.file.writeBoolean(true);
+        this.getFile().seek(this.getFile().length());
+        this.getFile().writeBoolean(true);
         this.write(obj);
 
         this.updateCab(obj.getId());
-        this.file.close();
+        return obj.getId();
     }
 
     
@@ -138,7 +137,7 @@ public class WorkingStructure implements Closeable {
         this.file.seek(0);
         this.file.skipBytes(Integer.BYTES);
 
-        return new Iterator<MovieObj>() {
+        return new Iterator<>() {
             @Override
             public boolean hasNext() {
                 try {
@@ -165,45 +164,41 @@ public class WorkingStructure implements Closeable {
     //Read a register
 
     public MovieObj read() throws IOException {
-        MovieObj obj = null;
 
-        if(notEOF()){
-            int size = this.file.readInt();
-            byte[] arr = new byte[size];
+        if(!notEOF()) return null;
 
-            this.file.read(arr);
+        int size = this.file.readInt();
+        byte[] arr = new byte[size];
 
-            obj = new MovieObj();
-            obj.fromByteArray(arr);
-        }
+        this.file.read(arr);
         
-        return obj;
+        return MovieObj.fromByteArray(arr);
     }
 
 
     //Create a database file
     private void initializing() throws IOException {
-        if(this.file.length() == 0){
-            this.file.seek(0);
-            this.file.writeInt(0);
+        this.file = new RandomAccessFile(this.basePath, "rw");
+        if(this.getFile().length() == 0){
+            this.getFile().seek(0);
+            this.getFile().writeInt(0);
         } else {
-            this.file.seek(0);
-            last_id = this.file.readInt();
+            this.getFile().seek(0);
+            last_id = this.getFile().readInt();
         }
     }
 
     //Update the last ID
     private void updateCab(int key) throws IOException{
-        this.file.seek(0);
-        this.file.writeInt(key);
+        this.getFile().seek(0);
+        this.getFile().writeInt(key);
     }
 
     //Read the last ID
     public int readCab() throws IOException {
-        this.file = new RandomAccessFile(this.basePath, "rw");	
-        this.file.seek(0);
-        int lastId = this.file.readInt();
-        this.file.close();
+        this.getFile().seek(0);
+        int lastId = this.getFile().readInt();
+        this.getFile().close();
         return lastId;
     }
 
@@ -225,11 +220,14 @@ public class WorkingStructure implements Closeable {
     }
 
     public RandomAccessFile getFile() {
+        if (file == null) {
+            try {
+                file = new RandomAccessFile(this.basePath, "rw");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         return file;
-    }
-
-    public void setFile(RandomAccessFile file) {
-        this.file = file;
     }
 
     @Override
