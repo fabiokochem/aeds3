@@ -1,6 +1,7 @@
 package database.sorting.distribution;
 
 import comp.MovieObj;
+import database.crud.WorkingStructure;
 import database.sorting.IntercalationSort;
 
 import java.io.FileOutputStream;
@@ -8,24 +9,25 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 
 public class BasicDistribution extends IntercalationSort {
-    public BasicDistribution(int registersPerBlock, int ways, String db_path, String tmpDir) throws IOException {
-        super(registersPerBlock, ways, db_path, tmpDir);
+    public BasicDistribution(int registersPerBlock, int ways, WorkingStructure archive) throws IOException {
+        super(registersPerBlock, ways, archive);
     }
 
     public void distribution() throws IOException {
-        this.getArchive().file.seek(0);
-        this.getArchive().file.skipBytes(Integer.BYTES);
+        Iterator<MovieObj> iterator = this.getArchive().readAll();
 
         FileOutputStream[] streams = new FileOutputStream[this.getWays()];
-        for (int t = 0; t <  this.getTmpFiles1().length; t++) streams[t] = new FileOutputStream(this.getTmpFiles1()[t].toFile());
+        for (int t = 0; t <  this.getTmpInputFiles().length; t++) streams[t] = new FileOutputStream(this.getTmpInputFiles()[t]);
         List<MovieObj> arr = new ArrayList<>();
 
         for (int nBlock = 0; this.getArchive().notEOF(); nBlock++) {
+            arr.clear();
             ObjectOutputStream oos = new ObjectOutputStream(streams[nBlock%this.getWays()]);
-            for(int i = 0; i < this.getRegistersPerBlock(); i++) arr.add(this.getArchive().read());
+            for(int i = 0; i < this.getRegistersPerBlock() && iterator.hasNext(); i++) arr.add(iterator.next());
             arr.sort(Comparator.comparingInt(MovieObj::getId));
             for (MovieObj movieObj : arr) oos.writeObject(movieObj);
         }

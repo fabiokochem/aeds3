@@ -8,20 +8,18 @@ public class MovieObj implements Serializable, Cloneable {
     public int id = -1;
     public String title;
     public Date releaseDate;
-    public short year;
     public float imdbRating;
     public int runtime;
     public String genres;
     public String directors;
 
     public MovieObj(){
-        this("", new Date(), (short)-1, -1f, -1, "", "");
+        this("", new Date(), -1f, -1, "", "");
     }
 
-    public MovieObj(String title, Date releaseDate, short year, float imdbRating, int runtime, String genres, String directors){
+    public MovieObj(String title, Date releaseDate, float imdbRating, int runtime, String genres, String directors){
         this.title = title;
         this.releaseDate = releaseDate;
-        this.year = year;
         this.imdbRating = imdbRating;
         this.runtime = runtime;
         this.genres = genres;
@@ -50,14 +48,6 @@ public class MovieObj implements Serializable, Cloneable {
 
     public void setReleaseDate(Date releaseDate) {
         this.releaseDate = releaseDate;
-    }
-
-    public short getYear() {
-        return year;
-    }
-
-    public void setYear(short year) {
-        this.year = year;
     }
 
     public float getImdbRating() {
@@ -99,7 +89,6 @@ public class MovieObj implements Serializable, Cloneable {
         this.setId(data_input.readInt());
         this.setTitle(data_input.readUTF());
         this.setReleaseDate(new Date(data_input.readLong()));
-        this.setYear(data_input.readShort());
         this.setImdbRating(data_input.readFloat());
         this.setRuntime(data_input.readInt());
         this.setGenres(data_input.readUTF());
@@ -113,7 +102,6 @@ public class MovieObj implements Serializable, Cloneable {
         data_output.writeInt(this.getId());
         data_output.writeUTF(this.getTitle());
         data_output.writeLong(this.getReleaseDate().getTime());
-        data_output.writeShort(this.getYear());
         data_output.writeFloat(this.getImdbRating());
         data_output.writeInt(this.getRuntime());
         data_output.writeUTF(this.getGenres());
@@ -127,7 +115,6 @@ public class MovieObj implements Serializable, Cloneable {
                 "id=" + id +
                 ", title='" + title + '\'' +
                 ", releaseDate=" + releaseDate +
-                ", year=" + year +
                 ", imdbRating=" + imdbRating +
                 ", runtime=" + runtime +
                 ", genres='" + genres + '\'' +

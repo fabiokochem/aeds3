@@ -30,4 +30,6 @@ log/
 #Java
 *.class
 
+src/main/java/tmp
+
 

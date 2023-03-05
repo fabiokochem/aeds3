@@ -32,13 +32,12 @@ public class CSVMovieParser {
 
     public static MovieObj parseLine(String[] line) throws ParseException {
         MovieObj movie = new MovieObj();
-        movie.setTitle(line[0]);
-        movie.setReleaseDate(formatter.parse(line[1]));
-        movie.setYear(Short.parseShort(line[2]));
-        movie.setImdbRating(Float.parseFloat(line[3]));
-        movie.setRuntime(Integer.parseInt(line[4]));
-        movie.setGenres(line[5]);
-        movie.setDirectors(line[6]);
+        movie.setTitle(line[1]);
+        movie.setReleaseDate(formatter.parse(line[2]));
+        movie.setImdbRating(Float.parseFloat(line[4]));
+        movie.setRuntime(Integer.parseInt(line[5]));
+        movie.setGenres(line[6]);
+        movie.setDirectors(line[7]);
 
         return movie;
     }

@@ -2,14 +2,16 @@ package database.crud;
 
 import comp.MovieObj;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.Iterator;
 
-public class WorkingStructure {
+public class WorkingStructure implements Closeable {
 
     // variaveis ====================================================
 
-    private static int id = 0;
+    private int last_id = 0;
     public String basePath; 
     public RandomAccessFile file;
 
@@ -19,7 +21,6 @@ public class WorkingStructure {
         this.basePath = path;
         this.file = new RandomAccessFile(this.basePath, "rw");
         this.initializing();
-        this.file.close();
     }
 
     // metodos publicos ======================================================
@@ -28,7 +29,7 @@ public class WorkingStructure {
         this.file = new RandomAccessFile(this.basePath, "rw");
         this.initializing();
 
-        if(id >= obj.getId()) {
+        if(last_id >= obj.getId()) {
             throw new IllegalArgumentException("[ERROR] The ID is not valid!");
         }
 
@@ -118,18 +119,50 @@ public class WorkingStructure {
         return res;
     }
 
-    // metodos privados ======================================================
-
+    //Initialize the file
     public boolean notEOF() throws IOException{
         return this.file.getFilePointer() < this.file.length();
     }
 
+    //Write a register
     private void write(MovieObj obj) throws IOException{
         byte[] arr = obj.toByteArray();
 
         this.file.writeInt(arr.length);
         this.file.write(arr);
     }
+
+
+    //Iterator to read all registers
+    public Iterator<MovieObj> readAll() throws IOException {
+        this.file.seek(0);
+        this.file.skipBytes(Integer.BYTES);
+
+        return new Iterator<MovieObj>() {
+            @Override
+            public boolean hasNext() {
+                try {
+                    return notEOF();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return false;
+            }
+
+            @Override
+            public MovieObj next() {
+                try {
+                    return read();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        };
+    }
+
+
+    //Read a register
 
     public MovieObj read() throws IOException {
         MovieObj obj = null;
@@ -147,21 +180,25 @@ public class WorkingStructure {
         return obj;
     }
 
+
+    //Create a database file
     private void initializing() throws IOException {
         if(this.file.length() == 0){
             this.file.seek(0);
             this.file.writeInt(0);
         } else {
             this.file.seek(0);
-            id = this.file.readInt();
+            last_id = this.file.readInt();
         }
     }
 
+    //Update the last ID
     private void updateCab(int key) throws IOException{
         this.file.seek(0);
         this.file.writeInt(key);
     }
 
+    //Read the last ID
     public int readCab() throws IOException {
         this.file = new RandomAccessFile(this.basePath, "rw");	
         this.file.seek(0);
@@ -170,4 +207,33 @@ public class WorkingStructure {
         return lastId;
     }
 
+
+    public int getLast_id() {
+        return last_id;
+    }
+
+    public void setLast_id(int last_id) {
+        this.last_id = last_id;
+    }
+
+    public String getBasePath() {
+        return basePath;
+    }
+
+    public void setBasePath(String basePath) {
+        this.basePath = basePath;
+    }
+
+    public RandomAccessFile getFile() {
+        return file;
+    }
+
+    public void setFile(RandomAccessFile file) {
+        this.file = file;
+    }
+
+    @Override
+    public void close() throws IOException {
+        this.file.close();
+    }
 }
