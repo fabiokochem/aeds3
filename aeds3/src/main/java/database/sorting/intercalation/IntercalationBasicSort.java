@@ -78,13 +78,18 @@ public class IntercalationBasicSort extends IntercalationSort {
             int min = Integer.MAX_VALUE;
             int minIndex = -1;
 
+            //TODO: Não está lendo todos os blocos
+
             // se o limite de blocos lidos nao foi atingido leia mais um bloco
             for (int i = 0; i < this.getWays(); i++) {
                 if (blocks_read[i] < nBlocks) {
-                    if (inputStreams[i].available() > 0 && arr.get(i).empty()) {
-                        arr.get(i).addAll(this.readBlock(inputStreams[i]));
-                    }
                     blocks_read[i]++;
+                    if (arr.get(i).empty()) {
+                        arr.get(i).addAll(this.readBlock(inputStreams[i]));
+                        if (arr.get(i).empty()) {
+                            blocks_read[i] = Integer.MAX_VALUE;
+                        }
+                    }
                 }
             }
 
@@ -111,13 +116,14 @@ public class IntercalationBasicSort extends IntercalationSort {
     }
 
     private List<MovieObj> readBlock(ObjectInputStream stream) throws IOException {
-        //TODO: Nenhum bloco está sendo lido corretamente, todos tem tamanho 0
         List<MovieObj> arr1 = new ArrayList<>();
-        for (int i = 0; i < this.getRegistersPerBlock() && stream.available() > 0; i++) {
+        for (int i = 0; i < this.getRegistersPerBlock(); i++) {
             try {
                 arr1.add((MovieObj) stream.readObject());
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
+            } catch (EOFException e) {
+                break;
             }
         }
         return arr1;

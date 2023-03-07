@@ -1,12 +1,14 @@
 package database.sorting.intercalation;
 
 import comp.MovieObj;
+import csv.CSVMovieParser;
 import database.crud.Crud;
 import junit.framework.TestCase;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Date;
+import java.io.ObjectInputStream;
 
 public class IntercalationBasicSortTest extends TestCase {
 
@@ -21,16 +23,31 @@ public class IntercalationBasicSortTest extends TestCase {
             Crud crud = new Crud(database.getAbsolutePath());
 
 
-            crud.create(new MovieObj(-1, "Filme 1", new Date(), 5.0f, 100, "Ação, Aventura", "Diretor 1, Diretor 2"));
-            crud.create(new MovieObj(-1, "Filme 2", new Date(), 2.4f, 112, "Ficção, Drama", "Diretor 3, Diretor 2"));
-            crud.delete(crud.create(new MovieObj(-1, "Filme 3", new Date(), 3.0f, 120, "Ação, Ficção", "Diretor 1, Diretor 4")));
-            crud.create(new MovieObj(-1, "Filme 4", new Date(), 4.0f, 100, "Ação, Aventura", "Diretor 1, Diretor 2"));
-            crud.create(new MovieObj(-1, "Filme 5", new Date(), 2.4f, 112, "Ficção, Drama", "Diretor 3, Diretor 2"));
+            crud.reset();
+            int n = 0;
+            for (MovieObj movieObj : CSVMovieParser.parseCSV("src/main/java/tmp/Movies.csv")) {
+                if (crud.lastId() == 20 ) break;
+                movieObj.setTitle("Filme " + (n++));
+                crud.create(movieObj);
+            }
+
+            for (int i = 0; i < 10; i ++) {
+                crud.delete(i);
+            }
         }
 
-        public void testDistribution() throws IOException {
+        public void testIntercalation() throws IOException {
             IntercalationBasicSort distribution = new IntercalationBasicSort(2, 2, database.getAbsolutePath());
+            try (ObjectInputStream fis = new ObjectInputStream(new FileInputStream(distribution.getTmpInputFiles()[0]))) {
+                for (int i = 0; i < 10; i++) {
+                    MovieObj movieObj = (MovieObj) fis.readObject();
+                    System.out.println(movieObj);
+                }
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
             distribution.overWriteDB();
+            assertTrue(database.length() > 50);
         }
 
         @Override
