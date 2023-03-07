@@ -1,25 +1,40 @@
 package database.crud;
 
+import comp.MovieObj;
 import junit.framework.TestCase;
 
+import java.io.File;
 import java.io.IOException;
 
 public class WorkingStructureTest extends TestCase {
 
-    WorkingStructure ws;
+
+    private File database;
+
     @Override
     public void setUp() throws Exception {
         super.setUp();
 
-        ws = new WorkingStructure("src/test/java/database/crud/teste.txt");
-        Crud crud = new Crud(ws);
+
+        database = File.createTempFile("database", ".db", new File("target"));
+        Crud crud = new Crud(database.getAbsolutePath());
 
         crud.reset();
-
-
     }
 
     public void testRead() throws IOException {
-        System.out.println(ws.read());
+        try (WorkingStructure ws = new WorkingStructure(database.getAbsolutePath())) {
+            MovieObj read = ws.readNext();
+            System.out.println(read);
+            assertNotNull(read);
+
+        }
+    }
+
+    @Override
+    public void tearDown() throws Exception {
+        super.tearDown();
+
+        database.delete();
     }
 }

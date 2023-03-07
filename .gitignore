@@ -31,5 +31,6 @@ log/
 *.class
 
 src/main/java/tmp
+target/
 
 

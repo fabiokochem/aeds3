@@ -88,7 +88,6 @@ public class MovieObj implements Serializable, Cloneable {
         ByteArrayInputStream arr_input = new ByteArrayInputStream(arr);
         DataInputStream data_input = new DataInputStream(arr_input);
 
-        //TODO: the array is not being read correctly
 
         obj.setId(data_input.readInt());
         obj.setTitle(data_input.readUTF());
