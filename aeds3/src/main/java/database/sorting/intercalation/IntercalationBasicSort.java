@@ -1,16 +1,12 @@
 package database.sorting.intercalation;
 
 import comp.MovieObj;
-import database.crud.Crud;
 import database.crud.WorkingStructure;
 import database.sorting.IntercalationSort;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 
 public class IntercalationBasicSort extends IntercalationSort {
     public IntercalationBasicSort(int registersPerBlock, int ways, String db_path) throws IOException {
@@ -21,23 +17,23 @@ public class IntercalationBasicSort extends IntercalationSort {
     }
 
     public int distribution() throws IOException {
-        Crud crud = new Crud(this.getDb_path());
         int totalBlocks = 0;
 
         try (WorkingStructure archive = new WorkingStructure(this.getDb_path())) {
-            FileOutputStream[] streams = new FileOutputStream[this.getWays()];
+            ObjectOutputStream[] streams = new ObjectOutputStream[this.getWays()];
             for (int t = 0; t < this.getTmpInputFiles().length; t++)
-                streams[t] = new FileOutputStream(this.getTmpInputFiles()[t]);
+                streams[t] = new ObjectOutputStream(new FileOutputStream(this.getTmpInputFiles()[t]));
             List<MovieObj> arr = new ArrayList<>();
 
             for (int nBlock = 0; !archive.isEOF(); nBlock++) {
                 arr.clear();
-                ObjectOutputStream oos = new ObjectOutputStream(streams[nBlock % this.getWays()]);
+                ObjectOutputStream oos = streams[nBlock % this.getWays()];
                 for (int i = 0; i < this.getRegistersPerBlock() && !archive.isEOF(); i++) {
                     arr.add(archive.readNext());
                     totalBlocks++;
                 }
                 arr.sort(Comparator.comparingInt(MovieObj::getId));
+                System.out.println(Arrays.toString(arr.stream().map(MovieObj::getId).toArray()));
                 for (MovieObj movieObj : arr) oos.writeObject(movieObj);
             }
 
@@ -78,14 +74,13 @@ public class IntercalationBasicSort extends IntercalationSort {
             int min = Integer.MAX_VALUE;
             int minIndex = -1;
 
-            //TODO: Não está lendo todos os blocos
-
             // se o limite de blocos lidos nao foi atingido leia mais um bloco
             for (int i = 0; i < this.getWays(); i++) {
                 if (blocks_read[i] < nBlocks) {
                     blocks_read[i]++;
                     if (arr.get(i).empty()) {
                         arr.get(i).addAll(this.readBlock(inputStreams[i]));
+                        System.out.println(Arrays.toString(arr.get(i).stream().map(MovieObj::getId).toArray()));
                         if (arr.get(i).empty()) {
                             blocks_read[i] = Integer.MAX_VALUE;
                         }
