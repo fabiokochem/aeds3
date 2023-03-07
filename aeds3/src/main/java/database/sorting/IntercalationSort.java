@@ -1,20 +1,25 @@
 package database.sorting;
 
+import comp.MovieObj;
 import database.crud.WorkingStructure;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.nio.file.Files;
 
-public class IntercalationSort {
-    private final WorkingStructure archive;
+public class IntercalationSort implements Closeable {
+    private final String db_path;
+
     private final int registersPerBlock;
     private final int ways;
 
     private File[] tmpInputFiles;
     private File[] tmpOutputFiles;
 
-    public IntercalationSort(int registersPerBlock, int ways, WorkingStructure archive) throws IOException{
-        this.archive = archive;
+    public IntercalationSort(int registersPerBlock, int ways, String db_path) throws IOException{
+        this.db_path = db_path;
         this.registersPerBlock = registersPerBlock;
         this.ways = ways;
 
@@ -31,8 +36,24 @@ public class IntercalationSort {
         }
     }
 
-    public WorkingStructure getArchive() {
-        return archive;
+    public void overWriteDB() throws IOException {
+        try (WorkingStructure ws = new WorkingStructure(db_path)) {
+            ws.reset();
+            ObjectInputStream fis;
+            for(int i = 0; i < ways; i++){
+                fis = new ObjectInputStream(Files.newInputStream(tmpInputFiles[i].toPath()));
+                while(fis.available() > 0){
+                    ws.append((MovieObj) fis.readObject());
+                }
+                fis.close();
+            }
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public String getDb_path() {
+        return db_path;
     }
 
     public int getRegistersPerBlock() {
@@ -57,5 +78,15 @@ public class IntercalationSort {
 
     public void setTmpOutputFiles(File[] tmpOutputFiles) {
         this.tmpOutputFiles = tmpOutputFiles;
+    }
+
+    @Override
+    public void close() throws IOException {
+        for (File file : tmpInputFiles) {
+            file.delete();
+        }
+        for (File file : tmpOutputFiles) {
+            file.delete();
+        }
     }
 }

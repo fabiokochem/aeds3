@@ -1,21 +1,49 @@
 package database.sorting.intercalation;
 
 import comp.MovieObj;
+import database.crud.Crud;
 import database.crud.WorkingStructure;
 import database.sorting.IntercalationSort;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Stack;
 
 public class IntercalationBasicSort extends IntercalationSort {
-    public IntercalationBasicSort(int registersPerBlock, int ways, WorkingStructure archive, String tmpDir) throws IOException {
-        super(registersPerBlock, ways, archive);
+    public IntercalationBasicSort(int registersPerBlock, int ways, String db_path) throws IOException {
+        super(registersPerBlock, ways, db_path);
+
+        int totalBlocks = distribution();
+        intercalate(totalBlocks);
+    }
+
+    public int distribution() throws IOException {
+        Crud crud = new Crud(this.getDb_path());
+        int totalBlocks = 0;
+
+        try (WorkingStructure archive = new WorkingStructure(this.getDb_path())) {
+            FileOutputStream[] streams = new FileOutputStream[this.getWays()];
+            for (int t = 0; t < this.getTmpInputFiles().length; t++)
+                streams[t] = new FileOutputStream(this.getTmpInputFiles()[t]);
+            List<MovieObj> arr = new ArrayList<>();
+
+            for (int nBlock = 0; !archive.isEOF(); nBlock++) {
+                arr.clear();
+                ObjectOutputStream oos = new ObjectOutputStream(streams[nBlock % this.getWays()]);
+                for (int i = 0; i < this.getRegistersPerBlock() && !archive.isEOF(); i++) {
+                    arr.add(archive.readNext());
+                    totalBlocks++;
+                }
+                arr.sort(Comparator.comparingInt(MovieObj::getId));
+                for (MovieObj movieObj : arr) oos.writeObject(movieObj);
+            }
+
+            for (int t = 0; t < this.getTmpInputFiles().length; t++) streams[t].close();
+        }
+        return totalBlocks;
     }
 
     public void intercalate(int totalBlocks) throws IOException {
@@ -79,9 +107,11 @@ public class IntercalationBasicSort extends IntercalationSort {
             // escreve o menor elemento no arquivo de saida
             outputStream.writeObject(arr.get(minIndex).pop());
         }
+        outputStream.close();
     }
 
     private List<MovieObj> readBlock(ObjectInputStream stream) throws IOException {
+        //TODO: Nenhum bloco está sendo lido corretamente, todos tem tamanho 0
         List<MovieObj> arr1 = new ArrayList<>();
         for (int i = 0; i < this.getRegistersPerBlock() && stream.available() > 0; i++) {
             try {
