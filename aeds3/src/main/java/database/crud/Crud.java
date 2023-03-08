@@ -44,7 +44,7 @@ public class Crud {
 
     public int lastId() throws IOException {
         try (WorkingStructure archive = new WorkingStructure(db_path)) {
-            return archive.getLast_id();
+            return archive.readCab();
         }
     }
 }

@@ -8,8 +8,6 @@ import java.io.RandomAccessFile;
 public class WorkingStructure implements AutoCloseable {
 
     // variaveis ====================================================
-
-    private int last_id = -1;
     public String basePath; 
     public RandomAccessFile file;
 
@@ -26,12 +24,10 @@ public class WorkingStructure implements AutoCloseable {
     public int append(MovieObj obj) throws IOException {
 
         if (obj.getId() < 0) {
-            obj.setId(++this.last_id);
-        } else if(last_id > obj.getId()) {
-            throw new IllegalArgumentException("[ERROR] The ID (" + obj.getId() + ") is already in use! Last available ID: " + last_id);
+            obj.setId(this.readCab()+1);
         }
 
-        this.getFile().seek(this.getFile().length());
+        this.file.seek(this.file.length());
         this.getFile().writeBoolean(true);
         this.write(obj);
 
@@ -136,10 +132,9 @@ public class WorkingStructure implements AutoCloseable {
         if(this.getFile().length() == 0){
             this.getFile().seek(0);
             this.getFile().writeInt(0);
-            last_id = 0;
         } else {
             this.getFile().seek(0);
-            last_id = this.getFile().readInt();
+            this.getFile().skipBytes(Integer.BYTES);
         }
     }
 
@@ -153,17 +148,7 @@ public class WorkingStructure implements AutoCloseable {
     public int readCab() throws IOException {
         this.getFile().seek(0);
         int lastId = this.getFile().readInt();
-        this.getFile().close();
         return lastId;
-    }
-
-
-    public int getLast_id() {
-        return last_id;
-    }
-
-    public void setLast_id(int last_id) {
-        this.last_id = last_id;
     }
 
     public String getBasePath() {

@@ -4,9 +4,11 @@ import comp.MovieObj;
 import database.crud.WorkingStructure;
 import database.sorting.IntercalationSort;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 public class IntercalationBasicSort extends IntercalationSort {
     public IntercalationBasicSort(int registersPerBlock, int ways, String db_path) throws IOException {
@@ -18,109 +20,108 @@ public class IntercalationBasicSort extends IntercalationSort {
 
     public int distribution() throws IOException {
         int totalBlocks = 0;
+        List<MovieObj> movies = new ArrayList<>(this.getRegistersPerBlock());
+        WorkingStructure[] tmpInputFiles = new WorkingStructure[this.getWays()];
+
+        for (int i = 0; i < this.getWays(); i++) {
+            tmpInputFiles[i] = new WorkingStructure(this.getDb_path());
+        }
 
         try (WorkingStructure archive = new WorkingStructure(this.getDb_path())) {
-            ObjectOutputStream[] streams = new ObjectOutputStream[this.getWays()];
-            for (int t = 0; t < this.getTmpInputFiles().length; t++)
-                streams[t] = new ObjectOutputStream(new FileOutputStream(this.getTmpInputFiles()[t]));
-            List<MovieObj> arr = new ArrayList<>();
+            int fileIndex = 0;
 
-            for (int nBlock = 0; !archive.isEOF(); nBlock++) {
-                arr.clear();
-                ObjectOutputStream oos = streams[nBlock % this.getWays()];
-                for (int i = 0; i < this.getRegistersPerBlock() && !archive.isEOF(); i++) {
-                    arr.add(archive.readNext());
-                    totalBlocks++;
-                }
-                arr.sort(Comparator.comparingInt(MovieObj::getId));
-                System.out.println(Arrays.toString(arr.stream().map(MovieObj::getId).toArray()));
-                for (MovieObj movieObj : arr) oos.writeObject(movieObj);
-            }
+            do {
+                movies.clear();
+                for (int i = 0; i < this.getRegistersPerBlock(); i++) movies.add(archive.readNext());
+                movies.sort(Comparator.comparingInt(MovieObj::getId));
 
-            for (int t = 0; t < this.getTmpInputFiles().length; t++) streams[t].close();
+                for (MovieObj movieObj : movies) tmpInputFiles[fileIndex].append(movieObj);
+
+                fileIndex = (fileIndex + 1) % this.getWays();
+                totalBlocks++;
+            } while (!movies.isEmpty());
+        }
+
+        for (int i = 0; i < this.getWays(); i++) {
+            tmpInputFiles[i].close();
         }
         return totalBlocks;
     }
 
     public void intercalate(int totalBlocks) throws IOException {
-        ObjectInputStream[] streams = new ObjectInputStream[this.getWays()];
-        ObjectOutputStream[] streams2 = new ObjectOutputStream[this.getWays()];
+       WorkingStructure[] tmpInputFiles = new WorkingStructure[this.getWays()];
+       WorkingStructure[] tmpOutputFiles = new WorkingStructure[this.getWays()];
 
-        // Reads all input temp files intercalates and then swap them
-        for (int intercalation = 1; intercalation*this.getRegistersPerBlock() < totalBlocks; intercalation++) {
-            for (int t = 0; t <  this.getTmpInputFiles().length; t++) streams[t] = new ObjectInputStream(Files.newInputStream(this.getTmpInputFiles()[t].toPath()));
-            for (int t = 0; t <  this.getTmpOutputFiles().length; t++) streams2[t] = new ObjectOutputStream(Files.newOutputStream(this.getTmpOutputFiles()[t].toPath()));
 
-            this.merge(intercalation, streams, streams2[(intercalation-1) % this.getWays()]);
+       for (int i = 0; i < this.getWays(); i++) {
+           tmpInputFiles[i] = new WorkingStructure(this.getTmpInputFiles()[i].getAbsolutePath());
+           tmpOutputFiles[i] = new WorkingStructure(this.getTmpOutputFiles()[i].getAbsolutePath());
+            tmpInputFiles[i].reset();
+            tmpOutputFiles[i].reset();
+       }
 
-            File[] tempFilesSwap = this.getTmpInputFiles();
-            this.setTmpInputFiles(this.getTmpOutputFiles());
-            this.setTmpOutputFiles(tempFilesSwap);
-        }
+       for (int i = 1; i*this.getRegistersPerBlock() < totalBlocks; i++) {
+           int n = (int) Math.ceil((double) totalBlocks / (i * this.getRegistersPerBlock()));
+
+           for (int j = 0; j < n; j++) {
+              merge(this.getRegistersPerBlock()*i, tmpInputFiles, tmpOutputFiles[j%this.getWays()]);
+           }
+
+           File[] swap = this.getTmpInputFiles();
+           this.setTmpInputFiles(this.getTmpOutputFiles());
+           this.setTmpOutputFiles(swap);
+
+           for (int j = 0; j < getWays(); j++) {
+                tmpInputFiles[j].close();
+                tmpOutputFiles[j].close();
+
+                tmpInputFiles[j] = new WorkingStructure(this.getTmpInputFiles()[j].getAbsolutePath());
+                tmpOutputFiles[j] = new WorkingStructure(this.getTmpOutputFiles()[j].getAbsolutePath());
+                tmpOutputFiles[j].reset();
+           }
+       }
+
+
+       for (int i = 0; i < this.getWays(); i++) {
+           tmpInputFiles[i].close();
+           tmpOutputFiles[i].close();
+       }
+
     }
 
 
-    public void merge(int nBlocks, ObjectInputStream[] inputStreams, ObjectOutputStream outputStream) throws IOException {
+    public void merge(int registersPerBlock, WorkingStructure[] tmpInputFiles, WorkingStructure tmpOutputFile) throws IOException {
+        int[] registersRead = new int[this.getWays()];
+        MovieObj[] registers = new MovieObj[this.getWays()];
+        int minIndex;
 
-        int[] blocks_read = new int[this.getWays()];
-
-        List<Stack<MovieObj>> arr = new ArrayList<>();
-
-        for (int t = 0; t < this.getWays(); t++) {
-            arr.add(new Stack<>());
-        }
-
-        while (true) {
-            int min = Integer.MAX_VALUE;
-            int minIndex = -1;
-
-            // se o limite de blocos lidos nao foi atingido leia mais um bloco
+        while(true) {
+            minIndex = -1;
             for (int i = 0; i < this.getWays(); i++) {
-                if (blocks_read[i] < nBlocks) {
-                    blocks_read[i]++;
-                    if (arr.get(i).empty()) {
-                        arr.get(i).addAll(this.readBlock(inputStreams[i]));
-                        System.out.println(Arrays.toString(arr.get(i).stream().map(MovieObj::getId).toArray()));
-                        if (arr.get(i).empty()) {
-                            blocks_read[i] = Integer.MAX_VALUE;
-                        }
-                    }
+                if (registersRead[i] < registersPerBlock) {
+                    registers[i] = tmpInputFiles[i].readNext();
+                    registersRead[i]++;
                 }
             }
 
 
-            // procura o menor elemento
             for (int i = 0; i < this.getWays(); i++) {
-                if (!arr.get(i).empty()) {
-                    if (arr.get(i).peek().getId() < min) {
-                        min = arr.get(i).peek().getId();
+                if (registers[i] != null) {
+                    if (minIndex == -1) {
+                        minIndex = i;
+                    } else if (registers[i].getId() < registers[minIndex].getId()) {
                         minIndex = i;
                     }
                 }
             }
 
-            // se nao houver mais elementos
             if (minIndex == -1) {
                 break;
             }
 
-            // escreve o menor elemento no arquivo de saida
-            outputStream.writeObject(arr.get(minIndex).pop());
+            tmpOutputFile.append(registers[minIndex]);
+            registers[minIndex] = null;
         }
-        outputStream.close();
     }
 
-    private List<MovieObj> readBlock(ObjectInputStream stream) throws IOException {
-        List<MovieObj> arr1 = new ArrayList<>();
-        for (int i = 0; i < this.getRegistersPerBlock(); i++) {
-            try {
-                arr1.add((MovieObj) stream.readObject());
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            } catch (EOFException e) {
-                break;
-            }
-        }
-        return arr1;
-    }
 }
