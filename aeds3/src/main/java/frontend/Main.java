@@ -125,10 +125,12 @@ public class Main {
         System.out.println("Digite o ID do filme que deseja atualizar: ");
         int changed = Integer.parseInt(br.readLine());
 
-        if (!crud.delete(changed)) {
+        MovieObj movieObj = promptMovieObj();
+        movieObj.setId(changed);
+
+        if (!crud.update(movieObj)) {
             System.out.println("[ERROR] Não foi possível deletar o filme! (ID inexistente)");
         } else {
-            MovieObj movieObj = promptMovieObj();
             System.out.println("-------------------------------");
             System.out.println("FILME (ID: "+ movieObj.getId() + ") ATUALIZADO COM SUCESSO");
             System.out.println("-------------------------------");

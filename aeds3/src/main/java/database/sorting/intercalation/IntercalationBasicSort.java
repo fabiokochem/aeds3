@@ -1,6 +1,7 @@
 package database.sorting.intercalation;
 
 import comp.MovieObj;
+import database.crud.Crud;
 import database.crud.WorkingStructure;
 import database.sorting.IntercalationSort;
 
@@ -13,9 +14,6 @@ import java.util.List;
 public class IntercalationBasicSort extends IntercalationSort {
     public IntercalationBasicSort(int registersPerBlock, int ways, String db_path) throws IOException {
         super(registersPerBlock, ways, db_path);
-
-        int totalBlocks = distribution();
-        intercalate(totalBlocks);
     }
 
     public int distribution() throws IOException {
@@ -24,18 +22,19 @@ public class IntercalationBasicSort extends IntercalationSort {
         WorkingStructure[] tmpInputFiles = new WorkingStructure[this.getWays()];
 
         for (int i = 0; i < this.getWays(); i++) {
-            tmpInputFiles[i] = new WorkingStructure(this.getDb_path());
+            tmpInputFiles[i] = new WorkingStructure(this.getTmpInputFiles()[i].getAbsolutePath());
         }
 
         try (WorkingStructure archive = new WorkingStructure(this.getDb_path())) {
             int fileIndex = 0;
+            MovieObj movieObj;
 
             do {
                 movies.clear();
-                for (int i = 0; i < this.getRegistersPerBlock(); i++) movies.add(archive.readNext());
+                for (int i = 0; i < this.getRegistersPerBlock() && (movieObj = archive.readNext()) != null; i++) movies.add(movieObj);
                 movies.sort(Comparator.comparingInt(MovieObj::getId));
 
-                for (MovieObj movieObj : movies) tmpInputFiles[fileIndex].append(movieObj);
+                for (MovieObj m : movies) tmpInputFiles[fileIndex].append(m);
 
                 fileIndex = (fileIndex + 1) % this.getWays();
                 totalBlocks++;
@@ -80,7 +79,6 @@ public class IntercalationBasicSort extends IntercalationSort {
                 tmpOutputFiles[j].reset();
            }
        }
-
 
        for (int i = 0; i < this.getWays(); i++) {
            tmpInputFiles[i].close();

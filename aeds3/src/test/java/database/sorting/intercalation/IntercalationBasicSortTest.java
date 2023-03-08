@@ -3,6 +3,7 @@ package database.sorting.intercalation;
 import comp.MovieObj;
 import csv.CSVMovieParser;
 import database.crud.Crud;
+import database.crud.WorkingStructure;
 import junit.framework.TestCase;
 
 import java.io.File;
@@ -38,6 +39,8 @@ public class IntercalationBasicSortTest extends TestCase {
 
         public void testIntercalation() throws IOException {
             IntercalationBasicSort distribution = new IntercalationBasicSort(2, 2, database.getAbsolutePath());
+            int totalBlocks = distribution.distribution();
+            distribution.intercalate(totalBlocks);
             try (ObjectInputStream fis = new ObjectInputStream(new FileInputStream(distribution.getTmpInputFiles()[0]))) {
                 for (int i = 0; i < 10; i++) {
                     MovieObj movieObj = (MovieObj) fis.readObject();
@@ -56,4 +59,19 @@ public class IntercalationBasicSortTest extends TestCase {
 
             //database.delete();
         }
+
+    public void testDistribution() throws IOException {
+            IntercalationBasicSort intercalationBasicSort = new IntercalationBasicSort(2, 2, database.getAbsolutePath());
+            intercalationBasicSort.distribution();
+            WorkingStructure[] workingStructures = new WorkingStructure[2];
+            for (int i = 0; i < 2; i++) {
+                workingStructures[i] = new WorkingStructure(intercalationBasicSort.getTmpInputFiles()[i].getAbsolutePath());
+            }
+
+            MovieObj movieObj = workingStructures[0].read(0);
+            assertEquals("Filme 10", movieObj.getTitle());
+
+    }
+
+
 }
