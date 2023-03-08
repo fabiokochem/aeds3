@@ -1,7 +1,6 @@
 package database.sorting.intercalation;
 
 import comp.MovieObj;
-import database.crud.Crud;
 import database.crud.WorkingStructure;
 import database.sorting.IntercalationSort;
 
@@ -50,6 +49,8 @@ public class IntercalationBasicSort extends IntercalationSort {
     public void intercalate(int totalBlocks) throws IOException {
        WorkingStructure[] tmpInputFiles = new WorkingStructure[this.getWays()];
        WorkingStructure[] tmpOutputFiles = new WorkingStructure[this.getWays()];
+
+
 
 
        for (int i = 0; i < this.getWays(); i++) {

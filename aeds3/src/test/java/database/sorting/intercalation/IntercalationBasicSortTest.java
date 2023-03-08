@@ -7,9 +7,7 @@ import database.crud.WorkingStructure;
 import junit.framework.TestCase;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 
 public class IntercalationBasicSortTest extends TestCase {
 
@@ -35,22 +33,21 @@ public class IntercalationBasicSortTest extends TestCase {
             for (int i = 0; i < 10; i ++) {
                 crud.delete(i);
             }
+
+            assertEquals(20, crud.lastId());
+            assertNull(crud.read(1));
+            assertEquals("Filme 10", crud.read(11).getTitle());
         }
 
         public void testIntercalation() throws IOException {
-            IntercalationBasicSort distribution = new IntercalationBasicSort(2, 2, database.getAbsolutePath());
-            int totalBlocks = distribution.distribution();
-            distribution.intercalate(totalBlocks);
-            try (ObjectInputStream fis = new ObjectInputStream(new FileInputStream(distribution.getTmpInputFiles()[0]))) {
-                for (int i = 0; i < 10; i++) {
-                    MovieObj movieObj = (MovieObj) fis.readObject();
-                    System.out.println(movieObj);
+            try (IntercalationBasicSort distribution = new IntercalationBasicSort(2, 2, database.getAbsolutePath())) {
+                int totalBlocks = distribution.distribution();
+                distribution.intercalate(totalBlocks);
+                distribution.overWriteDB();
+                try (WorkingStructure workingStructure = new WorkingStructure(database.getAbsolutePath())) {
+                    assertEquals("Filme 10", workingStructure.readNext().getTitle());
                 }
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
             }
-            distribution.overWriteDB();
-            assertTrue(database.length() > 50);
         }
 
         @Override
@@ -61,15 +58,15 @@ public class IntercalationBasicSortTest extends TestCase {
         }
 
     public void testDistribution() throws IOException {
-            IntercalationBasicSort intercalationBasicSort = new IntercalationBasicSort(2, 2, database.getAbsolutePath());
+        try (IntercalationBasicSort intercalationBasicSort = new IntercalationBasicSort(2, 2, database.getAbsolutePath())) {
             intercalationBasicSort.distribution();
-            WorkingStructure[] workingStructures = new WorkingStructure[2];
-            for (int i = 0; i < 2; i++) {
-                workingStructures[i] = new WorkingStructure(intercalationBasicSort.getTmpInputFiles()[i].getAbsolutePath());
+            MovieObj movieObj;
+            try (WorkingStructure workingStructure = new WorkingStructure(intercalationBasicSort.getTmpInputFiles()[0].getAbsolutePath())) {
+                movieObj = workingStructure.read(0);
             }
-
-            MovieObj movieObj = workingStructures[0].read(0);
             assertEquals("Filme 10", movieObj.getTitle());
+        }
+
 
     }
 

@@ -2,6 +2,7 @@ package database.crud;
 
 import comp.MovieObj;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
@@ -28,7 +29,6 @@ public class WorkingStructure implements AutoCloseable {
         }
 
         this.file.seek(this.file.length());
-        this.getFile().writeBoolean(true);
         this.write(obj);
 
         this.updateCab(obj.getId());
@@ -62,10 +62,13 @@ public class WorkingStructure implements AutoCloseable {
     }
 
     public boolean delete(int key) throws IOException {
+        //TODO: Não está escrevento o booleano na posição correta
+
         MovieObj movieObj = this.gotoRegister(key);
         if(movieObj == null) return false;
         else {
             this.file.writeBoolean(false);
+            this.file.skipBytes(this.file.readInt());
             return true;
         }
     }
@@ -97,7 +100,7 @@ public class WorkingStructure implements AutoCloseable {
     //Write a register
     private void write(MovieObj obj) throws IOException{
         byte[] arr = obj.toByteArray();
-
+        this.file.writeBoolean(true);
         this.file.writeInt(arr.length);
         this.file.write(arr);
     }
@@ -107,23 +110,28 @@ public class WorkingStructure implements AutoCloseable {
 
     public MovieObj readNext() throws IOException {
 
-        if(isEOF()) return null;
-
         int size;
+        byte[] arr;
 
-        while (!this.file.readBoolean() && !isEOF()) {
+        try {
+            while (!this.file.readBoolean()) {
+                size = this.file.readInt();
+                this.file.skipBytes(size);
+            }
+
             size = this.file.readInt();
-            this.file.skipBytes(size);
+            arr = new byte[size];
+
+            this.file.read(arr);
+
+        } catch (EOFException e) {
+            return null;
         }
 
-        if(isEOF()) return null;
 
-        size = this.file.readInt();
-        byte[] arr = new byte[size];
-
-        this.file.read(arr);
-        
-        return MovieObj.fromByteArray(arr);
+        MovieObj movieObj = MovieObj.fromByteArray(arr);
+        System.out.println(movieObj.getId());
+        return movieObj;
     }
 
 

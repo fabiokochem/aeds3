@@ -1,13 +1,9 @@
 package database.sorting;
 
-import comp.MovieObj;
-import database.crud.WorkingStructure;
-
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.nio.file.Files;
+import java.io.RandomAccessFile;
 
 public class IntercalationSort implements Closeable {
     private final String db_path;
@@ -37,18 +33,14 @@ public class IntercalationSort implements Closeable {
     }
 
     public void overWriteDB() throws IOException {
-        try (WorkingStructure ws = new WorkingStructure(db_path)) {
-            ws.reset();
-            ObjectInputStream fis;
-            for(int i = 0; i < ways; i++){
-                fis = new ObjectInputStream(Files.newInputStream(tmpInputFiles[i].toPath()));
-                while(fis.available() > 0){
-                    ws.append((MovieObj) fis.readObject());
+        try (RandomAccessFile db = new RandomAccessFile(this.getDb_path(), "rw")) {
+            try (RandomAccessFile tmpFile = new RandomAccessFile(this.getTmpOutputFiles()[0], "r")) {
+                byte[] buffer = new byte[4096];
+                int nRead;
+                while ((nRead = tmpFile.read(buffer, 0, buffer.length)) != -1) {
+                    db.write(buffer, 0, nRead);
                 }
-                fis.close();
             }
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -81,7 +73,7 @@ public class IntercalationSort implements Closeable {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         for (File file : tmpInputFiles) {
             file.delete();
         }

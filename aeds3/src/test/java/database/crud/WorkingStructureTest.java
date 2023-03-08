@@ -1,6 +1,7 @@
 package database.crud;
 
 import comp.MovieObj;
+import csv.CSVMovieParser;
 import junit.framework.TestCase;
 
 import java.io.File;
@@ -19,15 +20,35 @@ public class WorkingStructureTest extends TestCase {
         database = File.createTempFile("database", ".db", new File("target"));
         Crud crud = new Crud(database.getAbsolutePath());
 
+
         crud.reset();
+        int n = 0;
+        for (MovieObj movieObj : CSVMovieParser.parseCSV("src/main/java/tmp/Movies.csv")) {
+            if (crud.lastId() == 20 ) break;
+            movieObj.setTitle("Filme " + (n++));
+            crud.create(movieObj);
+        }
+
+        for (int i = 0; i < 10; i ++) {
+            crud.delete(i);
+        }
+
+        assertEquals(20, crud.lastId());
+        assertNull(crud.read(1));
+        assertEquals("Filme 10", crud.read(11).getTitle());
     }
 
-    public void testRead() throws IOException {
+    public void testReadNext() throws IOException {
         try (WorkingStructure ws = new WorkingStructure(database.getAbsolutePath())) {
             MovieObj read = ws.readNext();
-            System.out.println(read);
             assertNotNull(read);
+            assertEquals(20, ws.readCab());
 
+            for (int i = 0; i < 10; i++) {
+                read = ws.readNext();
+                assertNotNull(read);
+                assertEquals("Filme " + (i + 10), read.getTitle());
+            }
         }
     }
 
@@ -37,4 +58,5 @@ public class WorkingStructureTest extends TestCase {
 
         database.delete();
     }
+
 }
