@@ -50,14 +50,11 @@ public class IntercalationBasicSort extends IntercalationSort {
        WorkingStructure[] tmpInputFiles = new WorkingStructure[this.getWays()];
        WorkingStructure[] tmpOutputFiles = new WorkingStructure[this.getWays()];
 
-
-
-
        for (int i = 0; i < this.getWays(); i++) {
            tmpInputFiles[i] = new WorkingStructure(this.getTmpInputFiles()[i].getAbsolutePath());
            tmpOutputFiles[i] = new WorkingStructure(this.getTmpOutputFiles()[i].getAbsolutePath());
-            tmpInputFiles[i].reset();
-            tmpOutputFiles[i].reset();
+           tmpInputFiles[i].reset();
+           tmpOutputFiles[i].reset();
        }
 
        for (int i = 1; i*this.getRegistersPerBlock() < totalBlocks; i++) {
@@ -87,7 +84,6 @@ public class IntercalationBasicSort extends IntercalationSort {
        }
 
     }
-
 
     public void merge(int registersPerBlock, WorkingStructure[] tmpInputFiles, WorkingStructure tmpOutputFile) throws IOException {
         int[] registersRead = new int[this.getWays()];

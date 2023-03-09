@@ -38,6 +38,8 @@ public class WorkingStructure implements AutoCloseable {
     public MovieObj gotoRegister(int id) throws IOException {
         MovieObj obj = null;
         long pos = 0;
+        this.file.seek(0);
+        this.file.skipBytes(Integer.BYTES);
 
         while(!this.isEOF() && (obj == null || obj.getId() != id)) {
             pos = this.file.getFilePointer();
