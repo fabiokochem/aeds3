@@ -33,7 +33,7 @@ public class Crud {
     public boolean delete(int id) throws IOException {
         try (WorkingStructure archive = new WorkingStructure(db_path)) {
             return  archive.delete(id);
-        }
+         }
     }
 
     public void reset() throws IOException {

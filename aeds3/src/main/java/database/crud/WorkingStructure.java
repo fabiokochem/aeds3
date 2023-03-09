@@ -43,7 +43,12 @@ public class WorkingStructure implements AutoCloseable {
 
         while(!this.isEOF() && (obj == null || obj.getId() != id)) {
             pos = this.file.getFilePointer();
-            obj = this.readNext();
+            if (!this.file.readBoolean()) {
+                this.file.skipBytes(this.file.readInt());
+            } else {
+                this.file.seek(pos);
+                obj = this.readNext();
+            }
         }
 
         if(obj == null || obj.getId() != id) return null;
@@ -69,6 +74,7 @@ public class WorkingStructure implements AutoCloseable {
         MovieObj movieObj = this.gotoRegister(key);
         if(movieObj == null) return false;
         else {
+            System.out.printf("Pos: %h\n", this.file.getFilePointer());
             this.file.writeBoolean(false);
             this.file.skipBytes(this.file.readInt());
             return true;
