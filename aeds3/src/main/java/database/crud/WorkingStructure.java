@@ -9,7 +9,7 @@ import java.io.RandomAccessFile;
 public class WorkingStructure implements AutoCloseable {
 
     // variaveis ====================================================
-    public String basePath; 
+    public final String basePath;
     public RandomAccessFile file;
 
     // construtores =================================================
@@ -69,12 +69,10 @@ public class WorkingStructure implements AutoCloseable {
     }
 
     public boolean delete(int key) throws IOException {
-        //TODO: Não está escrevento o booleano na posição correta
 
         MovieObj movieObj = this.gotoRegister(key);
         if(movieObj == null) return false;
         else {
-            System.out.printf("Pos: %h\n", this.file.getFilePointer());
             this.file.writeBoolean(false);
             this.file.skipBytes(this.file.readInt());
             return true;
@@ -137,9 +135,7 @@ public class WorkingStructure implements AutoCloseable {
         }
 
 
-        MovieObj movieObj = MovieObj.fromByteArray(arr);
-        System.out.println(movieObj.getId());
-        return movieObj;
+        return MovieObj.fromByteArray(arr);
     }
 
 
@@ -149,8 +145,7 @@ public class WorkingStructure implements AutoCloseable {
             this.getFile().seek(0);
             this.getFile().writeInt(0);
         } else {
-            this.getFile().seek(0);
-            this.getFile().skipBytes(Integer.BYTES);
+            this.getFile().seek(Integer.BYTES);
         }
     }
 
@@ -163,16 +158,11 @@ public class WorkingStructure implements AutoCloseable {
     //Read the last ID
     public int readCab() throws IOException {
         this.getFile().seek(0);
-        int lastId = this.getFile().readInt();
-        return lastId;
+        return this.getFile().readInt();
     }
 
     public String getBasePath() {
         return basePath;
-    }
-
-    public void setBasePath(String basePath) {
-        this.basePath = basePath;
     }
 
     public RandomAccessFile getFile() {return file;}

@@ -16,8 +16,8 @@ public class IntercalationBasicSort extends IntercalationSort {
     }
 
     public int distribution() throws IOException {
-        int totalBlocks = 0;
-        List<MovieObj> movies = new ArrayList<>(this.getRegistersPerBlock());
+        int totalRegisters = 0;
+        List<MovieObj> movies = new ArrayList<>(this.getInitialBlockSize());
         WorkingStructure[] tmpInputFiles = new WorkingStructure[this.getWays()];
 
         for (int i = 0; i < this.getWays(); i++) {
@@ -30,38 +30,42 @@ public class IntercalationBasicSort extends IntercalationSort {
 
             do {
                 movies.clear();
-                for (int i = 0; i < this.getRegistersPerBlock() && (movieObj = archive.readNext()) != null; i++) movies.add(movieObj);
+                for (int i = 0; i < this.getInitialBlockSize() && (movieObj = archive.readNext()) != null; i++) movies.add(movieObj);
                 movies.sort(Comparator.comparingInt(MovieObj::getId));
 
-                for (MovieObj m : movies) tmpInputFiles[fileIndex].append(m);
+                for (MovieObj m : movies) {
+                    tmpInputFiles[fileIndex].append(m);
+                    totalRegisters++;
+                }
 
                 fileIndex = (fileIndex + 1) % this.getWays();
-                totalBlocks++;
             } while (!movies.isEmpty());
         }
 
         for (int i = 0; i < this.getWays(); i++) {
             tmpInputFiles[i].close();
         }
-        return totalBlocks;
+        return totalRegisters;
     }
 
-    public void intercalate(int totalBlocks) throws IOException {
+    public void intercalate(int totalRegisters) throws IOException {
        WorkingStructure[] tmpInputFiles = new WorkingStructure[this.getWays()];
        WorkingStructure[] tmpOutputFiles = new WorkingStructure[this.getWays()];
 
        for (int i = 0; i < this.getWays(); i++) {
            tmpInputFiles[i] = new WorkingStructure(this.getTmpInputFiles()[i].getAbsolutePath());
            tmpOutputFiles[i] = new WorkingStructure(this.getTmpOutputFiles()[i].getAbsolutePath());
-           tmpInputFiles[i].reset();
            tmpOutputFiles[i].reset();
        }
 
-       for (int i = 1; i*this.getRegistersPerBlock() < totalBlocks; i++) {
-           int n = (int) Math.ceil((double) totalBlocks / (i * this.getRegistersPerBlock()));
+       for (int i = this.getInitialBlockSize(); i/2 < totalRegisters*this.getWays(); i*=2) {
+           int nBlocks = (int) Math.ceil((double) totalRegisters / i / this.getWays());
 
-           for (int j = 0; j < n; j++) {
-              merge(this.getRegistersPerBlock()*i, tmpInputFiles, tmpOutputFiles[j%this.getWays()]);
+           System.out.println("Tam. bloco: " + i + " | N. blocos: " + nBlocks + " | Total: " + totalRegisters + " | Ways: " + this.getWays());
+
+           for (int j = 0; j < nBlocks; j++) {
+               System.out.println("Intercalando bloco " + j + " de " + nBlocks);
+               merge(i, tmpInputFiles, tmpOutputFiles[j%this.getWays()]);
            }
 
            File[] swap = this.getTmpInputFiles();
@@ -93,18 +97,15 @@ public class IntercalationBasicSort extends IntercalationSort {
         while(true) {
             minIndex = -1;
             for (int i = 0; i < this.getWays(); i++) {
-                if (registersRead[i] < registersPerBlock) {
+                if (registersRead[i] < registersPerBlock && registers[i] == null) {
                     registers[i] = tmpInputFiles[i].readNext();
                     registersRead[i]++;
                 }
             }
 
-
             for (int i = 0; i < this.getWays(); i++) {
                 if (registers[i] != null) {
-                    if (minIndex == -1) {
-                        minIndex = i;
-                    } else if (registers[i].getId() < registers[minIndex].getId()) {
+                    if (minIndex == -1 || registers[i].getId() < registers[minIndex].getId()) {
                         minIndex = i;
                     }
                 }
@@ -115,6 +116,7 @@ public class IntercalationBasicSort extends IntercalationSort {
             }
 
             tmpOutputFile.append(registers[minIndex]);
+            System.out.println("-Escrevendo " + registers[minIndex].getId() + " do caminho " + minIndex);
             registers[minIndex] = null;
         }
     }

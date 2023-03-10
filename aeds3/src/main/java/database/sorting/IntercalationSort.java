@@ -1,22 +1,24 @@
 package database.sorting;
 
+import comp.MovieObj;
+import database.crud.WorkingStructure;
+
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 
 public class IntercalationSort implements Closeable {
     private final String db_path;
 
-    private final int registersPerBlock;
+    private final int initialBlockSize;
     private final int ways;
 
     private File[] tmpInputFiles;
     private File[] tmpOutputFiles;
 
-    public IntercalationSort(int registersPerBlock, int ways, String db_path) throws IOException{
+    public IntercalationSort(int initialBlockSize, int ways, String db_path) throws IOException{
         this.db_path = db_path;
-        this.registersPerBlock = registersPerBlock;
+        this.initialBlockSize = initialBlockSize;
         this.ways = ways;
 
         tmpInputFiles = new File[ways];
@@ -33,12 +35,12 @@ public class IntercalationSort implements Closeable {
     }
 
     public void overWriteDB() throws IOException {
-        try (RandomAccessFile db = new RandomAccessFile(this.getDb_path(), "rw")) {
-            try (RandomAccessFile tmpFile = new RandomAccessFile(this.getTmpOutputFiles()[0], "r")) {
-                byte[] buffer = new byte[4096];
-                int nRead;
-                while ((nRead = tmpFile.read(buffer, 0, buffer.length)) != -1) {
-                    db.write(buffer, 0, nRead);
+        try (WorkingStructure archive = new WorkingStructure(this.getDb_path())) {
+            archive.reset();
+            try (WorkingStructure tmp = new WorkingStructure(this.getTmpInputFiles()[0].getAbsolutePath())) {
+                MovieObj movieObj;
+                while ((movieObj = tmp.readNext()) != null) {
+                    archive.append(movieObj);
                 }
             }
         }
@@ -48,8 +50,8 @@ public class IntercalationSort implements Closeable {
         return db_path;
     }
 
-    public int getRegistersPerBlock() {
-        return registersPerBlock;
+    public int getInitialBlockSize() {
+        return initialBlockSize;
     }
 
     public int getWays() {

@@ -45,7 +45,7 @@ public class IntercalationBasicSortTest extends TestCase {
                 distribution.intercalate(totalBlocks);
                 distribution.overWriteDB();
                 try (WorkingStructure workingStructure = new WorkingStructure(database.getAbsolutePath())) {
-                    assertEquals("Filme 9", workingStructure.readNext().getTitle());
+                    assertEquals("Filme 9", workingStructure.read(10).getTitle());
                 }
             }
         }
