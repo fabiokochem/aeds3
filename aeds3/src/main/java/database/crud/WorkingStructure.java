@@ -138,6 +138,13 @@ public class WorkingStructure implements AutoCloseable {
         return MovieObj.fromByteArray(arr);
     }
 
+    public MovieObj peekNext() throws IOException {
+        long pos = this.file.getFilePointer();
+        MovieObj obj = this.readNext();
+        this.file.seek(pos);
+        return obj;
+    }
+
 
     //Create a database file
     private void initializing() throws IOException {
