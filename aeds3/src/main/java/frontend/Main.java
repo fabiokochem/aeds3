@@ -8,6 +8,7 @@ import database.crud.WorkingStructure;
 import database.sorting.intercalation.*;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.ParseException;
@@ -15,19 +16,19 @@ import java.text.SimpleDateFormat;
 
 public class Main {
 
-    public static String db_path = "src/main/java/tmp/database.db";
+    public static String db_path = "aeds3/src/main/java/tmp/database.db";
     public static Crud crud = new Crud(db_path);
 
     public static void main(String[] args) throws Exception {
+        System.out.println();
         Menu();
-
     }
 
     // Interface de usuario
 
     public static void Menu() throws Exception{
         for(int res = -1; res != 11;) {
-            System.out.println("Bem-Vindo ao Menu! \n (1) Criar filme \n (2) Ler um filme \n (3) Atualizar um filme \n (4) Deletar um filme \n (5) Histórico de movimentações \n (6) Resetar banco de dados \n (7) Limpar Banco de dados \n (8) Intercalação de Ordenação básica \n (9) Intercalação de ordenação Variável \n (10) Intercalação de ordenação com Heap \n (11) Sair");
+            System.out.println("Bem-Vindo ao Menu! \n (1) Criar filme \n (2) Ler um filme \n (3) Atualizar um filme \n (4) Deletar um filme \n (5) Ultimo ID \n (6) Resetar banco de dados \n (7) Limpar Banco de dados \n (8) Intercalação de Ordenação básica \n (9) Intercalação de ordenação Variável \n (10) Intercalação de ordenação com Heap \n (11) Sair");
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             res = Integer.parseInt(br.readLine());
 
@@ -54,10 +55,11 @@ public class Main {
 
     public static void create() throws Exception {
         MovieObj movieObj = promptMovieObj();
+        int id = crud.create(movieObj);
 
         System.out.println("-------------------------");
         System.out.println("FILME CRIADO COM SUCESSO!");
-        System.out.printf("ID: %3d%n", movieObj.id);
+        System.out.printf("ID: %3d%n", id);
         System.out.println("-------------------------");
     }
 
@@ -70,7 +72,7 @@ public class Main {
     public static void reset() throws CsvValidationException, IOException, ParseException {
         try (WorkingStructure archive = new WorkingStructure(db_path)) {
             archive.reset();
-            for (MovieObj movie : CSVMovieParser.parseCSV("src/main/java/tmp/Movies.csv")) {
+            for (MovieObj movie : CSVMovieParser.parseCSV("aeds3/src/main/java/tmp/Movies.csv")) {
                 archive.append(movie);
             }
         }
@@ -169,14 +171,13 @@ public class Main {
 
         System.out.print("Digite a quantidade de registros por bloco: ");
         rpb = Integer.parseInt(br.readLine());
-        System.out.println();
+        System.out.println(rpb);
         System.out.print("Digite a quantidade de caminhos: ");
         ways = Integer.parseInt(br.readLine());
-        System.out.println();
+        System.out.println(ways);
 
         try (IntercalationBasicSort is = new IntercalationSelectionSort(rpb, ways, db_path)){
-            is.distribution();
-            is.intercalate(0);
+            is.intercalate(is.distribution());
             is.overWriteDB();
         }
     }
@@ -193,8 +194,7 @@ public class Main {
         System.out.println();
 
         try(IntercalationVaryingSort is = new IntercalationVaryingSort(rpb, ways, db_path)){
-            is.distribution();
-            is.intercalate(0);
+            is.intercalate(is.distribution());
             is.overWriteDB();
         }
     }
@@ -211,8 +211,7 @@ public class Main {
         System.out.println();
 
         try(IntercalationSelectionSort is = new IntercalationSelectionSort(rpb, ways, db_path)) {
-            is.distribution();
-            is.intercalate(0);
+            is.intercalate(is.distribution());
             is.overWriteDB();
         }
     }

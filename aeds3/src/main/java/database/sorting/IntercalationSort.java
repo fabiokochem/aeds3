@@ -32,6 +32,7 @@ public class IntercalationSort implements Closeable {
             tmpOutputFiles[i].deleteOnExit();
             System.out.println(tmpOutputFiles[i]);
         }
+
     }
 
     public void overWriteDB() throws IOException {

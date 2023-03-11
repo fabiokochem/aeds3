@@ -27,17 +27,23 @@ public class IntercalationSelectionSort extends IntercalationVaryingSort {
             HeapNode oldMovieObjNode;
 
             for (int i = 0 ; i < this.getInitialBlockSize(); i++) {
-                movies.insert(new HeapNode(archive.readNext()));
+                movieObj = archive.readNext();
+                if(movieObj != null) {
+                    movies.insert(new HeapNode(movieObj));
+                }
             }
 
             while ((movieObj = archive.readNext()) != null) {
                 oldMovieObjNode = movies.substitute(new HeapNode(movieObj));
                 tmpInputFiles[oldMovieObjNode.getWeight() % this.getWays()].append(oldMovieObjNode.getMovieObj());
+                totalRegisters++;
             }
 
-            for (int i = 0; i < this.getInitialBlockSize(); i++) {
+
+            while(!movies.isEmpty()){
                 oldMovieObjNode = movies.remove();
                 tmpInputFiles[oldMovieObjNode.getWeight() % this.getWays()].append(oldMovieObjNode.getMovieObj());
+                totalRegisters++;
             }
         }
 
