@@ -5,6 +5,7 @@ import comp.MovieObj;
 import csv.CSVMovieParser;
 import database.crud.Crud;
 import database.crud.WorkingStructure;
+import database.sorting.intercalation.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -25,8 +26,8 @@ public class Main {
     // Interface de usuario
 
     public static void Menu() throws Exception{
-        for(int res = -1; res != 6;) {
-            System.out.println("Bem-Vindo ao Menu! \n (1) Criar filme \n (2) Ler um filme \n (3) Atualizar um filme \n (4) Deletar um filme \n (5) Histórico de movimentações \n (6) Resetar banco de dados \n (7) Limpar Banco de dados (8) \n Sair");
+        for(int res = -1; res != 11;) {
+            System.out.println("Bem-Vindo ao Menu! \n (1) Criar filme \n (2) Ler um filme \n (3) Atualizar um filme \n (4) Deletar um filme \n (5) Histórico de movimentações \n (6) Resetar banco de dados \n (7) Limpar Banco de dados \n (8) Intercalação de Ordenação básica \n (9) Intercalação de ordenação Variável \n (10) Intercalação de ordenação com Heap \n (11) Sair");
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             res = Integer.parseInt(br.readLine());
 
@@ -39,7 +40,10 @@ public class Main {
                     case 5 -> lastIdDesc();
                     case 6 -> reset();
                     case 7 -> drop();
-                    case 8 -> System.out.println("Saindo...");
+                    case 8 -> IntercalationBasicSortDesc();
+                    case 9 -> IntercalationVaryingSortDesc();
+                    case 10 -> IntercalationSelectionSortDes();
+                    case 11 -> System.out.println("Saindo...");
                     default -> System.out.println("Opção inválida");
                 }
             } catch (Exception e) {
@@ -157,5 +161,59 @@ public class Main {
         System.out.println("------------------------------------");
         System.out.println("ÚLTIMO ID: " + crud.lastId());
         System.out.println("------------------------------------");
+    }
+
+    public static void IntercalationBasicSortDesc() throws IOException{
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        int rpb, ways;
+
+        System.out.print("Digite a quantidade de registros por bloco: ");
+        rpb = Integer.parseInt(br.readLine());
+        System.out.println();
+        System.out.print("Digite a quantidade de caminhos: ");
+        ways = Integer.parseInt(br.readLine());
+        System.out.println();
+
+        try (IntercalationBasicSort is = new IntercalationSelectionSort(rpb, ways, db_path)){
+            is.distribution();
+            is.intercalate(0);
+            is.overWriteDB();
+        }
+    }
+
+    public static void IntercalationVaryingSortDesc() throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        int rpb, ways;
+
+        System.out.print("Digite a quantidade de registros por bloco: ");
+        rpb = Integer.parseInt(br.readLine());
+        System.out.println();
+        System.out.print("Digite a quantidade de caminhos: ");
+        ways = Integer.parseInt(br.readLine());
+        System.out.println();
+
+        try(IntercalationVaryingSort is = new IntercalationVaryingSort(rpb, ways, db_path)){
+            is.distribution();
+            is.intercalate(0);
+            is.overWriteDB();
+        }
+    }
+
+    public static void IntercalationSelectionSortDes() throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        int rpb, ways;
+
+        System.out.print("Digite a quantidade de registros por bloco: ");
+        rpb = Integer.parseInt(br.readLine());
+        System.out.println();
+        System.out.print("Digite a quantidade de caminhos: ");
+        ways = Integer.parseInt(br.readLine());
+        System.out.println();
+
+        try(IntercalationSelectionSort is = new IntercalationSelectionSort(rpb, ways, db_path)) {
+            is.distribution();
+            is.intercalate(0);
+            is.overWriteDB();
+        }
     }
 }
